@@ -154,7 +154,9 @@ export default function Home() {
     // Active sheet
     const activeWorksheet = XLSX.utils.json_to_sheet(activeFinalData);
     // Make headers bold
-    const activeRange = XLSX.utils.decode_range(activeWorksheet["!ref"] || "A1");
+    const activeRange = XLSX.utils.decode_range(
+      activeWorksheet["!ref"] || "A1",
+    );
     for (let col = activeRange.s.c; col <= activeRange.e.c; col++) {
       const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
       if (activeWorksheet[cellAddress]) {
@@ -166,7 +168,9 @@ export default function Home() {
     // Not Found sheet
     const notFoundWorksheet = XLSX.utils.json_to_sheet(notFoundFinalData);
     // Make headers bold
-    const notFoundRange = XLSX.utils.decode_range(notFoundWorksheet["!ref"] || "A1");
+    const notFoundRange = XLSX.utils.decode_range(
+      notFoundWorksheet["!ref"] || "A1",
+    );
     for (let col = notFoundRange.s.c; col <= notFoundRange.e.c; col++) {
       const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
       if (notFoundWorksheet[cellAddress]) {
@@ -435,8 +439,8 @@ export default function Home() {
                   Upload Excel File
                 </CardTitle>
                 <CardDescription className="dark:text-slate-400">
-                  Upload an Excel file with a "Registration" column to batch
-                  check statuses
+                  Upload an Excel file with a &quot;Registration&quot; column to
+                  batch check statuses
                 </CardDescription>
               </CardHeader>
               <CardContent>

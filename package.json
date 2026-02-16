@@ -34,6 +34,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "pretty-quick": "^4.2.2",
     "shadcn": "^3.8.5",
     "tailwindcss": "^4",
