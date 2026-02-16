@@ -22,17 +22,22 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HPCSAResult } from "@/app/api/search/route";
 import { BatchSearchResult } from "@/app/api/batch-search/route";
-import { Upload, FileCheck, Search, CheckCircle2, XCircle, AlertCircle, Download } from "lucide-react";
+import {
+  Upload,
+  FileCheck,
+  Search,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Download,
+  Moon,
+  Sun,
+} from "lucide-react";
 import * as XLSX from "xlsx";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface SearchResult {
   results: HPCSAResult[];
@@ -55,7 +60,9 @@ export default function Home() {
   const [searchResults, setSearchResults] = useState<SearchResult | null>(null);
 
   const [batchLoading, setBatchLoading] = useState(false);
-  const [batchResults, setBatchResults] = useState<BatchSearchResponse | null>(null);
+  const [batchResults, setBatchResults] = useState<BatchSearchResponse | null>(
+    null,
+  );
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleExport = () => {
@@ -63,19 +70,19 @@ export default function Home() {
 
     // Separate results by status
     const activeResults = batchResults.results.filter(
-      (r) => r.found && r.status.toLowerCase() === "active"
+      (r) => r.found && r.status.toLowerCase() === "active",
     );
     const notFoundResults = batchResults.results.filter(
-      (r) => !r.found || r.status.toLowerCase() !== "active"
+      (r) => !r.found || r.status.toLowerCase() !== "active",
     );
 
     // Prepare data for Active sheet
     const activeData = activeResults.map((result) => ({
       "Registration Number": result.registration,
       "Full Name": result.name || "N/A",
-      "City": result.city || "N/A",
-      "Status": result.status || "N/A",
-      "Found": result.found ? "Yes" : "No",
+      City: result.city || "N/A",
+      Status: result.status || "N/A",
+      Found: result.found ? "Yes" : "No",
     }));
 
     // Add active summary
@@ -83,18 +90,24 @@ export default function Home() {
       {
         "Registration Number": "SUMMARY",
         "Full Name": "",
-        "City": "",
-        "Status": "",
-        "Found": "",
+        City: "",
+        Status: "",
+        Found: "",
       },
       {
         "Registration Number": "Total Active",
         "Full Name": activeResults.length,
-        "City": "",
-        "Status": "",
-        "Found": "",
+        City: "",
+        Status: "",
+        Found: "",
       },
-      { "Registration Number": "", "Full Name": "", "City": "", "Status": "", "Found": "" },
+      {
+        "Registration Number": "",
+        "Full Name": "",
+        City: "",
+        Status: "",
+        Found: "",
+      },
     ];
 
     const activeFinalData = [...activeSummary, ...activeData];
@@ -103,9 +116,9 @@ export default function Home() {
     const notFoundData = notFoundResults.map((result) => ({
       "Registration Number": result.registration,
       "Full Name": result.name || "N/A",
-      "City": result.city || "N/A",
-      "Status": result.status || "Not Found",
-      "Found": result.found ? "Yes" : "No",
+      City: result.city || "N/A",
+      Status: result.status || "Not Found",
+      Found: result.found ? "Yes" : "No",
     }));
 
     // Add not found summary
@@ -113,18 +126,24 @@ export default function Home() {
       {
         "Registration Number": "SUMMARY",
         "Full Name": "",
-        "City": "",
-        "Status": "",
-        "Found": "",
+        City: "",
+        Status: "",
+        Found: "",
       },
       {
         "Registration Number": "Total Not Found/Inactive",
         "Full Name": notFoundResults.length,
-        "City": "",
-        "Status": "",
-        "Found": "",
+        City: "",
+        Status: "",
+        Found: "",
       },
-      { "Registration Number": "", "Full Name": "", "City": "", "Status": "", "Found": "" },
+      {
+        "Registration Number": "",
+        "Full Name": "",
+        City: "",
+        Status: "",
+        Found: "",
+      },
     ];
 
     const notFoundFinalData = [...notFoundSummary, ...notFoundData];
@@ -242,7 +261,9 @@ export default function Home() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
+        ".xlsx",
+      ],
       "application/vnd.ms-excel": [".xls"],
     },
     maxFiles: 1,
@@ -250,14 +271,17 @@ export default function Home() {
   });
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 py-12 px-4">
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 py-12 px-4">
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight text-slate-900">
+        <div className="text-center space-y-2 relative">
+          <div className="absolute top-0 right-0">
+            <ThemeToggle />
+          </div>
+          <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
             HPCSA Registration Search
           </h1>
-          <p className="text-slate-600">
+          <p className="text-slate-600 dark:text-slate-400">
             Search for healthcare practitioners by their registration number
           </p>
         </div>
@@ -270,10 +294,12 @@ export default function Home() {
 
           {/* Single Search Tab */}
           <TabsContent value="single" className="space-y-4">
-            <Card className="shadow-lg">
+            <Card className="shadow-lg dark:bg-slate-900 dark:border-slate-800">
               <CardHeader>
-                <CardTitle>Search Registration</CardTitle>
-                <CardDescription>
+                <CardTitle className="dark:text-slate-50">
+                  Search Registration
+                </CardTitle>
+                <CardDescription className="dark:text-slate-400">
                   Enter the HPCSA registration number to search
                 </CardDescription>
               </CardHeader>
@@ -292,9 +318,17 @@ export default function Home() {
                         className="flex-1"
                         disabled={loading}
                       />
-                      <Button type="submit" disabled={loading || !registrationNumber}>
+                      <Button
+                        type="submit"
+                        disabled={loading || !registrationNumber}
+                        className={loading ? "shimmer" : ""}
+                      >
                         <Search className="w-4 h-4 mr-2" />
-                        {loading ? "Searching..." : "Search"}
+                        {loading ? (
+                          <span className="animate-ellipsis">Searching</span>
+                        ) : (
+                          "Search"
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -303,15 +337,17 @@ export default function Home() {
             </Card>
 
             {searchResults && (
-              <Card className="shadow-lg">
+              <Card className="shadow-lg dark:bg-slate-900 dark:border-slate-800">
                 <CardHeader>
-                  <CardTitle>Search Results</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="dark:text-slate-50">
+                    Search Results
+                  </CardTitle>
+                  <CardDescription className="dark:text-slate-400">
                     {searchResults.error
                       ? "An error occurred"
                       : searchResults.message
-                      ? searchResults.message
-                      : `Found ${searchResults.results.length} record(s)`}
+                        ? searchResults.message
+                        : `Found ${searchResults.results.length} record(s)`}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -376,14 +412,15 @@ export default function Home() {
 
           {/* Batch Upload Tab */}
           <TabsContent value="batch" className="space-y-4">
-            <Card className="shadow-lg">
+            <Card className="shadow-lg dark:bg-slate-900 dark:border-slate-800">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 dark:text-slate-50">
                   <Upload className="w-5 h-5" />
                   Upload Excel File
                 </CardTitle>
-                <CardDescription>
-                  Upload an Excel file with a "Registration" column to batch check statuses
+                <CardDescription className="dark:text-slate-400">
+                  Upload an Excel file with a "Registration" column to batch
+                  check statuses
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -391,14 +428,16 @@ export default function Home() {
                   {...getRootProps()}
                   className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors ${
                     isDragActive
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-slate-300 hover:border-slate-400 hover:bg-slate-50"
-                  } ${batchLoading ? "opacity-50 pointer-events-none" : ""}`}
+                      ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
+                      : "border-slate-300 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-slate-600 dark:hover:bg-slate-800"
+                  } ${batchLoading ? "opacity-50 pointer-events-none shimmer" : ""}`}
                 >
                   <input {...getInputProps()} />
                   <FileCheck className="w-12 h-12 mx-auto mb-4 text-slate-400" />
                   {isDragActive ? (
-                    <p className="text-blue-600 font-medium">Drop the file here...</p>
+                    <p className="text-blue-600 font-medium">
+                      Drop the file here...
+                    </p>
                   ) : (
                     <>
                       <p className="text-slate-700 font-medium">
@@ -414,8 +453,14 @@ export default function Home() {
                 {batchLoading && (
                   <div className="mt-6 space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-600">Processing registrations...</span>
-                      <span className="text-slate-600">{uploadProgress}%</span>
+                      <span className="text-slate-600 dark:text-slate-400 shimmer">
+                        <span className="animate-ellipsis">
+                          Processing registrations
+                        </span>
+                      </span>
+                      <span className="text-slate-600 dark:text-slate-400">
+                        {uploadProgress}%
+                      </span>
                     </div>
                     <Progress value={uploadProgress} className="h-2" />
                   </div>
@@ -427,9 +472,9 @@ export default function Home() {
               <>
                 {/* Summary Cards */}
                 {batchResults.error ? (
-                  <Card className="shadow-lg">
+                  <Card className="shadow-lg dark:bg-slate-900 dark:border-slate-800">
                     <CardContent className="pt-6">
-                      <div className="text-center py-8 text-red-600">
+                      <div className="text-center py-8 text-red-600 dark:text-red-400">
                         <AlertCircle className="w-12 h-12 mx-auto mb-2" />
                         <p className="font-medium">{batchResults.error}</p>
                       </div>
@@ -438,65 +483,80 @@ export default function Home() {
                 ) : (
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <Card className="shadow-md">
+                      <Card className="shadow-md dark:bg-slate-900 dark:border-slate-800">
                         <CardContent className="pt-6">
                           <div className="text-center">
-                            <p className="text-sm text-slate-600">Total Processed</p>
-                            <p className="text-3xl font-bold text-slate-900">
+                            <p className="text-sm text-slate-600 dark:text-slate-400">
+                              Total Processed
+                            </p>
+                            <p className="text-3xl font-bold text-slate-900 dark:text-slate-50">
                               {batchResults.totalProcessed}
                             </p>
                           </div>
                         </CardContent>
                       </Card>
 
-                      <Card className="shadow-md">
+                      <Card className="shadow-md dark:bg-slate-900 dark:border-slate-800">
                         <CardContent className="pt-6">
                           <div className="text-center">
-                            <p className="text-sm text-slate-600">Active</p>
-                            <p className="text-3xl font-bold text-green-600">
+                            <p className="text-sm text-slate-600 dark:text-slate-400">
+                              Active
+                            </p>
+                            <p className="text-3xl font-bold text-green-600 dark:text-green-500">
                               {batchResults.activeCount}
                             </p>
-                            <CheckCircle2 className="w-5 h-5 text-green-600 mx-auto mt-1" />
+                            <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-500 mx-auto mt-1" />
                           </div>
                         </CardContent>
                       </Card>
 
-                      <Card className="shadow-md">
+                      <Card className="shadow-md dark:bg-slate-900 dark:border-slate-800">
                         <CardContent className="pt-6">
                           <div className="text-center">
-                            <p className="text-sm text-slate-600">Inactive</p>
-                            <p className="text-3xl font-bold text-amber-600">
+                            <p className="text-sm text-slate-600 dark:text-slate-400">
+                              Inactive
+                            </p>
+                            <p className="text-3xl font-bold text-amber-600 dark:text-amber-500">
                               {batchResults.inactiveCount}
                             </p>
-                            <AlertCircle className="w-5 h-5 text-amber-600 mx-auto mt-1" />
+                            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-500 mx-auto mt-1" />
                           </div>
                         </CardContent>
                       </Card>
 
-                      <Card className="shadow-md">
+                      <Card className="shadow-md dark:bg-slate-900 dark:border-slate-800">
                         <CardContent className="pt-6">
                           <div className="text-center">
-                            <p className="text-sm text-slate-600">Not Found</p>
-                            <p className="text-3xl font-bold text-red-600">
+                            <p className="text-sm text-slate-600 dark:text-slate-400">
+                              Not Found
+                            </p>
+                            <p className="text-3xl font-bold text-red-600 dark:text-red-500">
                               {batchResults.notFoundCount}
                             </p>
-                            <XCircle className="w-5 h-5 text-red-600 mx-auto mt-1" />
+                            <XCircle className="w-5 h-5 text-red-600 dark:text-red-500 mx-auto mt-1" />
                           </div>
                         </CardContent>
                       </Card>
                     </div>
 
                     {/* Results Table */}
-                    <Card className="shadow-lg">
+                    <Card className="shadow-lg dark:bg-slate-900 dark:border-slate-800">
                       <CardHeader>
                         <div className="flex items-center justify-between">
                           <div>
-                            <CardTitle>Detailed Results</CardTitle>
-                            <CardDescription>
-                              {batchResults.results.length} registration(s) processed
+                            <CardTitle className="dark:text-slate-50">
+                              Detailed Results
+                            </CardTitle>
+                            <CardDescription className="dark:text-slate-400">
+                              {batchResults.results.length} registration(s)
+                              processed
                             </CardDescription>
                           </div>
-                          <Button onClick={handleExport} variant="outline">
+                          <Button
+                            onClick={handleExport}
+                            variant="outline"
+                            className="dark:border-slate-700 dark:text-slate-300"
+                          >
                             <Download className="w-4 h-4 mr-2" />
                             Export to Excel
                           </Button>
@@ -526,22 +586,27 @@ export default function Home() {
                                     {result.found ? (
                                       <Badge
                                         variant={
-                                          result.status.toLowerCase() === "active"
+                                          result.status.toLowerCase() ===
+                                          "active"
                                             ? "default"
                                             : "secondary"
                                         }
                                         className={
-                                          result.status.toLowerCase() === "active"
+                                          result.status.toLowerCase() ===
+                                          "active"
                                             ? "bg-green-500 hover:bg-green-600"
-                                            : result.status.toLowerCase() === "inactive"
-                                            ? "bg-amber-500 hover:bg-amber-600"
-                                            : ""
+                                            : result.status.toLowerCase() ===
+                                                "inactive"
+                                              ? "bg-amber-500 hover:bg-amber-600"
+                                              : ""
                                         }
                                       >
                                         {result.status}
                                       </Badge>
                                     ) : (
-                                      <Badge variant="destructive">Not Found</Badge>
+                                      <Badge variant="destructive">
+                                        Not Found
+                                      </Badge>
                                     )}
                                   </TableCell>
                                   <TableCell>
