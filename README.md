@@ -156,6 +156,15 @@ For batch uploads, structure your file with the following required columns:
 - **Excel files**: `Registration number` (or `Registration`)
 - **CSV files**: `Attended` and `Professional council number`
 
+### 📁 Test Files
+
+Sample files are provided in the `docs/` folder for testing:
+
+- `docs/81117837665_attendee_report.csv` - Zoom attendee report example
+- `docs/*.xlsx` - Excel spreadsheet examples
+
+You can upload these files directly to test the batch upload functionality.
+
 **Excel (.xlsx, .xls) example:**
 
 | Registration number | Name | Surname |
