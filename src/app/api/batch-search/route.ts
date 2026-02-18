@@ -6,14 +6,15 @@
  */
 
 import { NextResponse } from "next/server";
-import { getServiceContainer } from "@/lib/services";
+import {
+  getServiceContainer,
+  BatchSearchResult as ServiceBatchSearchResult,
+} from "@/lib/services";
 
-export interface BatchSearchResult {
-  registration: string;
-  name: string;
-  city: string;
-  status: string;
-  found: boolean;
+// API-specific response interface with metadata
+export interface BatchSearchResult extends ServiceBatchSearchResult {
+  professionalCouncilName?: string;
+  timeInSession?: string;
 }
 
 export interface BatchSearchResponse {
@@ -76,10 +77,85 @@ export async function POST(request: Request): Promise<NextResponse> {
     const arrayBuffer = await file.arrayBuffer();
     const parseResult = await parser.parse(arrayBuffer);
 
-    // Step 2: Extract registration numbers
+    console.log(`Parsed ${parseResult.data.length} rows from file`);
+    if (parseResult.data.length > 0) {
+      console.log(
+        "Sample row keys:",
+        Object.keys(parseResult.data[0]).slice(0, 10),
+      );
+    }
+
+    // Step 2: Extract registration numbers and build lookup map
     const extractResult = registrationExtractor.extract(parseResult.data, {
       fileType,
     });
+
+    // Build a map of registration numbers to original row data
+    const originalDataMap = new Map<
+      string,
+      { professionalCouncilName?: string; timeInSession?: string }
+    >();
+
+    // Flexible field name matching (case-insensitive)
+    const getFieldValue = (
+      row: Record<string, unknown>,
+      possibleFields: string[],
+    ): unknown => {
+      for (const [key, value] of Object.entries(row)) {
+        const normalizedKey = key.trim().toLowerCase();
+        for (const field of possibleFields) {
+          if (
+            normalizedKey === field.toLowerCase() &&
+            value !== undefined &&
+            value !== null &&
+            value !== ""
+          ) {
+            return value;
+          }
+        }
+      }
+      return undefined;
+    };
+
+    const councilNameFields = ["Professional council name", "Council Name"];
+    const timeInSessionFields = [
+      "Time in Session (minutes)",
+      "Time in Session",
+      "Duration",
+    ];
+    const regFields =
+      fileType === "csv"
+        ? ["Professional council number", "Council Number"]
+        : ["Registration number", "Registration"];
+
+    for (const row of parseResult.data as Record<string, unknown>[]) {
+      // Get registration number using flexible matching
+      const regNumber = getFieldValue(row, regFields);
+
+      if (regNumber) {
+        // Normalize registration number: remove all spaces
+        const regStr = String(regNumber).trim().replace(/\s+/g, "");
+
+        // Get professional council name using flexible matching
+        const councilName = getFieldValue(row, councilNameFields);
+
+        // Get time in session using flexible matching
+        const timeInSession = getFieldValue(row, timeInSessionFields);
+
+        originalDataMap.set(regStr, {
+          professionalCouncilName: councilName
+            ? String(councilName)
+            : undefined,
+          timeInSession:
+            timeInSession !== undefined ? String(timeInSession) : undefined,
+        });
+      }
+    }
+
+    console.log(`Built lookup map with ${originalDataMap.size} entries`);
+    // Debug: Log first few entries
+    const firstFew = Array.from(originalDataMap.entries()).slice(0, 3);
+    console.log("Sample lookup entries:", firstFew);
 
     // Validation: Check registration numbers found
     if (extractResult.registrationNumbers.length === 0) {
@@ -104,14 +180,28 @@ export async function POST(request: Request): Promise<NextResponse> {
       extractResult.registrationNumbers,
     );
 
-    // Map service response to API response format
+    // Map service response to API response format with original CSV data
+    const resultsWithMetadata = serviceResponse.results.map((result) => {
+      const originalData = originalDataMap.get(result.registration);
+      console.log(`Mapping result for ${result.registration}:`, originalData);
+      return {
+        ...result,
+        professionalCouncilName: originalData?.professionalCouncilName,
+        timeInSession: originalData?.timeInSession,
+      };
+    });
+
     const apiResponse: BatchSearchResponse = {
-      results: serviceResponse.results,
+      results: resultsWithMetadata,
       activeCount: serviceResponse.statistics.activeCount,
       inactiveCount: serviceResponse.statistics.inactiveCount,
       notFoundCount: serviceResponse.statistics.notFoundCount,
       totalProcessed: serviceResponse.statistics.totalProcessed,
     };
+
+    console.log(
+      `Returning ${apiResponse.results.length} results with metadata`,
+    );
 
     return NextResponse.json(apiResponse);
   } catch (error) {

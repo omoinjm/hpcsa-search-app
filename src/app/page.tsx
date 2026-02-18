@@ -24,7 +24,10 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HPCSAResult } from "@/app/api/search/route";
-import { BatchSearchResult } from "@/app/api/batch-search/route";
+import {
+  BatchSearchResult,
+  BatchSearchResponse as ApiBatchSearchResponse,
+} from "@/app/api/batch-search/route";
 import {
   Upload,
   FileCheck,
@@ -68,10 +71,11 @@ export default function Home() {
   const handleExport = () => {
     if (!batchResults || batchResults.results.length === 0) return;
 
-    // Separate results by status
+    // Separate results by status - simple filtering (case-insensitive)
     const activeResults = batchResults.results.filter(
       (r) => r.found && r.status.toLowerCase() === "active",
     );
+
     const notFoundResults = batchResults.results.filter(
       (r) => !r.found || r.status.toLowerCase() !== "active",
     );
@@ -82,7 +86,6 @@ export default function Home() {
       "Full Name": result.name || "N/A",
       City: result.city || "N/A",
       Status: result.status || "N/A",
-      Found: result.found ? "Yes" : "No",
     }));
 
     // Add active summary at the bottom
@@ -92,14 +95,12 @@ export default function Home() {
         "Full Name": "",
         City: "",
         Status: "",
-        Found: "",
       },
       {
         "Registration Number": "TOTAL ACTIVE:",
         "Full Name": activeResults.length,
         City: "",
         Status: "",
-        Found: "",
       },
     ];
 
@@ -111,7 +112,6 @@ export default function Home() {
       "Full Name": result.name || "N/A",
       City: result.city || "N/A",
       Status: result.status || "Not Found",
-      Found: result.found ? "Yes" : "No",
     }));
 
     // Add not found summary at the bottom
@@ -121,14 +121,12 @@ export default function Home() {
         "Full Name": "",
         City: "",
         Status: "",
-        Found: "",
       },
       {
         "Registration Number": "TOTAL NOT FOUND/INACTIVE:",
         "Full Name": notFoundResults.length,
         City: "",
         Status: "",
-        Found: "",
       },
     ];
 
@@ -577,10 +575,11 @@ export default function Home() {
                             <TableHeader>
                               <TableRow>
                                 <TableHead>Registration Number</TableHead>
+                                {/* <TableHead>Professional Council Name</TableHead> */}
+                                {/* <TableHead>Time in Session (minutes)</TableHead> */}
                                 <TableHead>Full Name</TableHead>
                                 <TableHead>City</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead>Found</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -589,6 +588,8 @@ export default function Home() {
                                   <TableCell className="font-medium">
                                     {result.registration}
                                   </TableCell>
+                                  {/* <TableCell>{result.professionalCouncilName || "-"}</TableCell> */}
+                                  {/* <TableCell>{result.timeInSession || "-"}</TableCell> */}
                                   <TableCell>{result.name || "-"}</TableCell>
                                   <TableCell>{result.city || "-"}</TableCell>
                                   <TableCell>
@@ -616,13 +617,6 @@ export default function Home() {
                                       <Badge variant="destructive">
                                         Not Found
                                       </Badge>
-                                    )}
-                                  </TableCell>
-                                  <TableCell>
-                                    {result.found ? (
-                                      <CheckCircle2 className="w-5 h-5 text-green-600" />
-                                    ) : (
-                                      <XCircle className="w-5 h-5 text-red-600" />
                                     )}
                                   </TableCell>
                                 </TableRow>
